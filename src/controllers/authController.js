@@ -1,8 +1,9 @@
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
+import { mergeGuestCartToUser } from './cartController.js';
 
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, sessionId } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -10,6 +11,7 @@ export const registerUser = async (req, res) => {
 
     const user = await User.create({ name, email, password });
     if (user) {
+      await mergeGuestCartToUser(sessionId, user._id);
       res.status(201).json({
         _id: user._id,
         name: user.name,
@@ -25,10 +27,11 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password,sessionId } = req.body;
   try {
     const user = await User.findOne({ email });
     if (user && (await user.matchPassword(password))) {
+      await mergeGuestCartToUser(sessionId, user._id);
       res.json({
         _id: user._id,
         name: user.name,
