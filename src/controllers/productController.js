@@ -85,3 +85,26 @@ export const deleteProduct = async (req, res) => {
     res.status(500).json({ message: 'Failed to delete product', error: error.message });
   }
 };
+
+
+// Search Products
+
+export const searchProducts = async (req, res) => {
+  try {
+    const query = req.query.q || '';
+
+    if (!query.trim()) {
+      return res.json([]);
+    }
+
+    const products = await Product.find({
+      name: { $regex: query, $options: 'i' },
+      visibility: 'public',
+      status: 'active'
+    }).limit(5).select('name price thumbnail slug');
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Search failed', error: error.message });
+  }
+};
