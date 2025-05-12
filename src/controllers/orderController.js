@@ -41,7 +41,7 @@ export const orderDetails = async (req, res) => {
             subtotal += total;
         }
 
-        const shipping = subtotal >= 5000 ? 0 : 499;
+        const shipping = subtotal >=0;
         const total = subtotal + shipping;
 
         // Step 5: Send the order details as the response
