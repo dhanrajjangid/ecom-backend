@@ -5,6 +5,7 @@ import cors from 'cors';
 import productRoutes from './src/routes/productRoutes.js';
 import authRoutes from './src/routes/authRoutes.js'
 import cartRoutes from './src/routes/cartRoutes.js'
+import orderRoutes from './src/routes/orderRoutes.js'
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ mongoose.connect(process.env.MONGO_URI,{ serverSelectionTimeoutMS: 30000,})
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/order', orderRoutes);
 
 // Start server
 const PORT = process.env.PORT || 8000;
