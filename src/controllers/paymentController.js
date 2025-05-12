@@ -28,6 +28,7 @@ export const createOrder = async (req, res) => {
       quantity: item.quantity,
       price: item.productId.salePrice,
       total: item.quantity * item.productId.salePrice,
+      thumbnail: item.productId.thumbnail,
     }));
 
     const totalAmount = items.reduce((acc, item) => acc + item.total, 0);
@@ -49,15 +50,13 @@ export const createOrder = async (req, res) => {
       razorpayOrderId: razorpayOrder.id,
       amount: totalAmount,
       currency: 'INR',
-      items,  // Add the items directly into the order
+      items, 
     });
 
     await newOrder.save();
 
-    // Optionally, you can clear the cart after order creation
     await Cart.deleteOne({ userId });
 
-    // Send back the order details to the client
     res.status(201).json({
       orderId: razorpayOrder.id,
       amount: razorpayOrder.amount,
@@ -69,3 +68,42 @@ export const createOrder = async (req, res) => {
     console.log(err, "Errorerror")
   }
 };
+
+export const checkPaymentStatus = async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    const order = await Order.findOne({ razorpayOrderId: orderId });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        status: 'not_found',
+        message: 'Order not found',
+      });
+    }
+
+    const razorpayOrder = await razorpay.orders.fetch(orderId);
+
+    // Update local DB if paid
+    if (razorpayOrder.status === 'paid') {
+      order.paid = true;
+      order.status = 'paid';
+      await order.save();
+    }
+
+    return res.json({
+      success: razorpayOrder.status === 'paid',
+      status: razorpayOrder.status, // 'created', 'paid', 'attempted', etc.
+    });
+  } catch (error) {
+    console.error('Error checking payment status:', error.message);
+    return res.status(500).json({
+      success: false,
+      status: 'error',
+      message: 'Internal Server Error',
+    });
+  }
+};
+
+

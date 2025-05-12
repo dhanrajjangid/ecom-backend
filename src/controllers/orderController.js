@@ -1,6 +1,7 @@
 import express from 'express';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
+import Order from '../models/Order.js';
 
 const router = express.Router();
 
@@ -57,5 +58,43 @@ export const orderDetails = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 }
+
+export const getUserOrders = async (req, res) => {
+    const { userId } = req.params;
+  
+    try {
+      const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
+  
+      if (!orders || orders.length === 0) {
+        return res.status(404).json({ message: 'No orders found' });
+      }
+  
+      res.json(orders);
+    } catch (err) {
+      console.error('Error fetching user orders:', err);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+
+  export const getOrderById = async (req, res) => {
+    const { orderId } = req.params;
+  
+    try {
+      const order = await Order.findById(orderId)
+        .populate('items.product', 'name thumbnail salePrice')
+        .populate('user', 'name email');
+  
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+  
+      res.json(order);
+    } catch (err) {
+      console.error('Error fetching order by ID:', err);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+  
+  
 
 export default router;
