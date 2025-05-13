@@ -8,6 +8,11 @@ const orderSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    deliveryAddress: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Address',
+      required: true,
+    },
     razorpayOrderId: {
       type: String,
       required: true,

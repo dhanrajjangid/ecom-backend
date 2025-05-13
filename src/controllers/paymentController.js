@@ -13,7 +13,12 @@ const razorpay = new Razorpay({
 
 export const createOrder = async (req, res) => {
   try {
-    const { userId } = req.body;
+
+    const { userId, addressId } = req.body;
+
+    if (!addressId) {
+      return res.status(400).json({ message: 'Address is required' });
+    }
 
     // Fetch the cart for the logged-in user
     const cart = await Cart.findOne({ userId }).populate('items.productId');
@@ -51,6 +56,7 @@ export const createOrder = async (req, res) => {
       amount: totalAmount,
       currency: 'INR',
       items, 
+      deliveryAddress: addressId,
     });
 
     await newOrder.save();
